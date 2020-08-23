@@ -1,5 +1,5 @@
-/*
 const db = require('../database');
+const bcrypt = require('bcryptjs')
 
 const registerUser = async (req, res, next) => {
     const name = req.body.name
@@ -42,4 +42,9 @@ const registerUser = async (req, res, next) => {
         }
     }
 }
-*/
+
+const userController = {
+    registerUser
+}
+
+module.exports = userController
