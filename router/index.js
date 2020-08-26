@@ -1,39 +1,22 @@
 const express = require('express')
 const router = require('express').Router()
-//const userRouter = require('./userRouter')
-const multer = require('multer')
-const path = require('path')
+const authRouter = require('./authRouter')
+const { upload } = require('../middleware/')
 
-//storage engine
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        cb(null, './images/profile/')
-    },
-    filename: function(req, file, cb){
-        cb(null, file.fieldname + '-' + Date.now() +
-        path.extname(file.originalname))
-    }
+//router
+router.get('/ping', (req, res) => {
+    res.send('Server Online')
 })
 
-//init upload
-const upload = multer({storage : storage})
-
-router.get('/', (req, res) => {
-    res.send('Hai!!')
-})
-router.get('/get', (req, res) => {
-    res.send('get')
-})
-
-//route multer
+//user route
+router.use('/auth', authRouter)
+//route multer test
 router.post('/addPicture', upload.single('pitcure'), function(req, res) {
     res.send("File rceived")
 })
 
 ////////////////////////////////////////////////////
-
-//router.use('/user', userRouter)
 
 router.use(notFound)
 router.use(errorHandler)
