@@ -44,7 +44,7 @@ const registerUser = async (req, res, next) => {
                     if(token){
                         nexmo.verify.request({
                             number: phoneNum,
-                            brand: 'SKUY',
+                            brand: 'Gemastik ',
                             code_length: '4',
                             pin_expiry: '300',
                             lg: 'id-id'
@@ -59,11 +59,13 @@ const registerUser = async (req, res, next) => {
                                 res.json({
                                     "success" : true,
                                     "token" : token,
-                                    "request_id" : result.request_id
+                                    "request_id" : result.request_id,
+                                    "message" : "Verification code has been sent"
                                 })
                             }
                         })
                     }else{
+                        res.status(500)
                         const error = new Error("JWT Error, cant create token")
                         next(error) 
                     }                                       
@@ -129,8 +131,11 @@ const verifyUser = (req,res,next) => {
             res.json({
                 "success" : false,
                 "error" : err,
-                "result" : result
+                "result" : result,
+                "message" : "Cant verify the code"
             })
+            const error = new Error("Internal server error")
+            next(error)
         } else {
             db.query('insert into users(name, gender, birthday, address, email, phoneNum, hashedPassword) values(?,?,?,?,?,?,?)', [name, gender, birthday, address, email, phoneNum, hashedPassword])
             const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "users" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
@@ -145,11 +150,13 @@ const verifyUser = (req,res,next) => {
                     if(token){
                         res.json({
                             "success" : true,
+                            "message" : "Verification success, account created",
                             "token" : token,
                             "result" : result,
                             "payload" : payload
                         })
                     }else{
+                        res.status(500)
                         const error = new Error("JWT Error, cant create token")
                         next(error)
                     }
@@ -158,8 +165,7 @@ const verifyUser = (req,res,next) => {
                 res.status(500)
                 res.json({
                     "success" : false,
-                    "error" : err,
-                    "sam" : 'sampai sini'
+                    "error" : err
                 })
             }
         }
@@ -183,19 +189,23 @@ const loginUser = async (req, res, next) =>{
             if(token){
                 res.json({
                     "success" : true,
+                    "message" : "Login successfully!",
                     "token" : token
                 })
             }else{
+                res.status(500)
                 const error = new Error("JWT Error, cant create token")
                 next(error)
             }
         })
         .catch(()=>{
+            res.status(406)
             const error = new Error("Incorrect password")
             next(error)
         })
     }else{
-        const error = new Error("You seems not registered yet")
+        res.status(406)
+        const error = new Error("Incorrect email")
         next(error)
     }
 }
