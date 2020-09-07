@@ -6,9 +6,14 @@ const addGigs = async (req ,res ,next) => {
     const jobdesc = req.body.jobdesc
     const salary = req.body.salary
     const workTime = req.body.workTime
-    const gigLoc = req.body.gigLoc
+    const province = req.body.province
+    const city = req.body.city
+    const district = req.body.district
+    const address1 = req.body.addressLine1
+    const address2 = req.body.addressLine2
+    const gigLoc = (province+","+city+","+district+","+address1+","+address2)
     
-    db.query('insert into gigs(id_owner, category, jobDesc, salary, workTime, gigLoc) values(?,?,?,?,?,?)', [id, category, jobdesc, salary, workTime, gigLoc])
+    db.query('insert into gigs(id_owner, category, jobDesc, salary, workTime, gigLoc, city) values(?,?,?,?,?,?,?)', [id, category, jobdesc, salary, workTime, gigLoc, city])
     .then(()=>{
         res.json({
             "success" :true,
@@ -26,21 +31,22 @@ const addGigs = async (req ,res ,next) => {
 
 const viewGig = async (req, res, next) => {
     const gigId = req.params.id
-    const [row] = await ('select * from gigs where id = ?', [gigId])
+    const [row] = await db.query('select * from gigs where id = ?', [gigId])
     if (row.length >0) {
         res.json({
             "gig" : row[0]
         })
     } else {
-        const error = new Error("Internal server error")
+        const error = new Error("Cant find the gig")
         next(error)
     }
 }
 
 const viewGigsbyAddress = async (req,res,next) => {
-    const [user] = await('select address from users where id = ?', [user.id])
+    const id = req.user.id
+    const [user] = await db.query('select address from users where id = ?', [id])
     if (user.length>0) {
-        const [row] = await ('select * from gigs where address = ?', [user[0]])
+        const [row] = await db.query('select id, title, category, city from gigs where city = ?', [user[0].address])
         if(row.length>0){
             res.json({
                 "gigs" : row
@@ -57,20 +63,28 @@ const viewGigsbyAddress = async (req,res,next) => {
 }
 
 const viewGigsbyLatests = async (req,res,next) => {
-    const [row] = await ('select * from gigs order by createdAt desc')
-    if(row.length>0){
-        res.json({
-            "gigs" : row
-        })
+    const id = req.user.id
+    const [user] = await db.query('select address from users where id = ?', [id]) 
+    if (user.length>0) {
+        const [row] = await db.query('select id, title, category, city from gigs where city = ? order by createdAt desc', [user[0].address])
+        if(row.length>0){
+            res.json({
+                "gigs" : row
+            })
+        } else {
+            const error = new Error("No gigs found")
+            next(error)    
+        }
     } else {
-        const error = new Error("No gigs found")
-        next(error)    
+        res.status(404)
+        const error = new Error("User not found")
+        next(error)
     }
 }
 
 const viewGigsbyCategory = async (req,res,next) => {
     const category = req.params.category
-    const [row] = await ('select * from gigs where category = ?', [category])
+    const [row] = await db.query('select * from gigs where category = ?', [category])
     if(row.length>0){
         res.json({
             "gigs" : row
@@ -83,7 +97,7 @@ const viewGigsbyCategory = async (req,res,next) => {
 
 const viewGigsbyType = async (req,res,next) => {
     const type = req.body.type
-    const [row] = await ('select * from gigs where gigType = ?', [type])
+    const [row] = await db.query('select * from gigs where gigType = ?', [type])
     if(row.length>0){
         res.json({
             "gigs" : row

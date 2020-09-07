@@ -3,7 +3,7 @@ const gigController = require('../controller/gigController')
 const { checkToken } = require('../middleware')
 
 router.get('/', checkToken, gigController.viewGigsbyAddress)
-router.get('/latest', gigController.viewGigsbyLatests)
+router.get('/latest', checkToken, gigController.viewGigsbyLatests)
 router.get('/category/:category', gigController.viewGigsbyCategory)
 router.get('/type', gigController.viewGigsbyType) //online or onsite
 router.get('/:id', gigController.viewGig)
