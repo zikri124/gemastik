@@ -9,7 +9,7 @@ const db = mysql.createPool({
     host: 'localhost',
     user: 'root',
     database: 'gem'
-});
+})
 
 db.query('select 1+1 as result',(err, result) =>{
     if (err)console.log(err)

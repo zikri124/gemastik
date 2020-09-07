@@ -57,11 +57,8 @@ const registerBackup = async(req, res, next) => {
                             next(error)
                         }                
                     } else {
-                        res.status(500)
-                        res.json({
-                            "success" : false,
-                            "error" : err
-                        })
+                        const error = new Error("Internal server error")
+                        next(error)
                     }                                       
                 } else {
                     res.status(409)
@@ -234,16 +231,12 @@ const verifyUser = (req,res,next) => {
                             "result" : result
                         })
                     }else{
-                        res.status(500)
                         const error = new Error("JWT Error, cant create token")
                         next(error)
                     }                
             } else {
-                res.status(500)
-                res.json({
-                    "success" : false,
-                    "error" : err
-                })
+                const error = new Error("JWT Error, cant create token")
+                next(error)
             }
         }
     }) 
