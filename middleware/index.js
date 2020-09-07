@@ -30,16 +30,5 @@ module.exports = {
             const err = new Error("Login First")
             next(err)
         }
-    },
-
-    upload : multer({storage : multer.diskStorage({
-        destination: function(req, file, cb) {
-            cb(null, './images/profile/')
-        },
-        filename: function(req, file, cb){
-            cb(null, file.fieldname + '-' + Date.now() +
-            path.extname(file.originalname))
-        }
-    })})
-
+    }
 }

@@ -1,6 +1,8 @@
 const express = require('express')
 const router = require('express').Router()
 const authRouter = require('./authRouter')
+const userRouter = require('./userRouter')
+const gigRouter = require('./gigRouter')
 const { upload } = require('../middleware/')
 
 
@@ -9,12 +11,20 @@ router.get('/ping', (req, res) => {
     res.send('Server Online')
 })
 
-//user route
+//auth route
 router.use('/auth', authRouter)
+//user route
+router.use('/user', userRouter)
+//gig route
+router.use('/gig', gigRouter)
+//get the profile image
+router.use('/profile', express.static('images/profile'))
+router.use('/identityCard', express.static('images/identity'))
+
 //route multer test
-router.post('/addPicture', upload.single('pitcure'), function(req, res) {
+/*router.post('/addPicture', upload.single('pitcure'), function(req, res) {
     res.send("File rceived")
-})
+})*/
 
 ////////////////////////////////////////////////////
 

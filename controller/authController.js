@@ -11,23 +11,102 @@ const nexmo = new Nexmo({
   apiSecret: process.env.API_SECRET
 })
 
+const registerBackup = async(req, res, next) => {
+    const name = req.body.name
+    const gender = req.body.gender
+    const birthday = req.body.birthday
+    const address = req.body.address
+    const phoneNum = req.body.phoneNum
+    const password = req.body.password
+    const email = req.body.email
+    const isEmail = validator.isEmail(email)
+
+    if (isEmail) {
+        const [rows] = await db.query('select * from users where email = ? limit 1', [email])
+        
+        if (name.length == 0 || gender.length == 0 || birthday.length == 0 || address.length == 0 || phoneNum.length == 0 || password.length == 0) {
+            res.status(409)
+            const error = new Error("Please enter all the field")
+            next(error)
+        } else if (rows.length == 0) {
+            const [rows2] = await db.query('select * from users where name = ? limit 1', [name])
+            if (rows2.length == 0) {
+                const [rows] = await db.query('select * from users where phoneNum = ? limit 1', [phoneNum])
+                if (rows.length == 0) {
+                    const hashedPassword = await bcrypt.hash(password, 11)
+                    
+                    db.query('insert into users(name, gender, birthday, address, email, phoneNum, hashedPassword) values(?,?,?,?,?,?,?)', [name, gender, birthday, address, email, phoneNum, hashedPassword])
+                    const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "users" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
+                    if (last.length > 0){
+                        const payload = {
+                            "id" : last[0].Auto_increment,
+                            "name" : name,
+                            "email" : email
+                        }   
+                        const token = jwt.sign(payload, JWT_KEY)
+                        if(token){
+                            res.json({
+                                "success" : true,
+                                "message" : "Verification success, account created",
+                                "token" : token,
+                                "payload" : payload
+                            })
+                        }else{
+                            res.status(500)
+                            const error = new Error("JWT Error, cant create token")
+                            next(error)
+                        }                
+                    } else {
+                        res.status(500)
+                        res.json({
+                            "success" : false,
+                            "error" : err
+                        })
+                    }                                       
+                } else {
+                    res.status(409)
+                    const error = new Error("Phone number already registered")
+                    next(error)
+                }
+            } else {
+                res.status(409)
+                const error = new Error("Name already registered")
+                next(error)
+            }
+        } else {
+            res.status(409)
+            const error = new Error("Email already exist")
+            next(error)
+        }
+    } else {
+        res.status(409)
+        const error = new Error("Invalid Email")
+        next(error)
+    }
+}
+
 const registerUser = async (req, res, next) => {
     const name = req.body.name
     const gender = req.body.gender
     const birthday = req.body.birthday
     const address = req.body.address
     const phoneNum = req.body.phoneNum
+    const password = req.body.password
     const email = req.body.email
     const isEmail = validator.isEmail(email)
 
     if (isEmail) {
-        const [rows] = await db.query('select * from users where name = ? limit 1', [name])
-        if (rows.length == 0) {
-            const [rows2] = await db.query('select * from users where email = ? limit 1', [email])
+        const [rows] = await db.query('select * from users where email = ? limit 1', [email])
+        
+        if (name.length == 0 || gender.length == 0 || birthday.length == 0 || address.length == 0 || phoneNum.length == 0 || password.length == 0) {
+            res.status(409)
+            const error = new Error("Please enter all the field")
+            next(error)
+        } else if (rows.length == 0) {
+            const [rows2] = await db.query('select * from users where name = ? limit 1', [name])
             if (rows2.length == 0) {
                 const [rows] = await db.query('select * from users where phoneNum = ? limit 1', [phoneNum])
                 if (rows.length == 0) {
-                    const password = req.body.password
                     const hashedPassword = await bcrypt.hash(password, 11)
                     
                     const payload = {
@@ -76,12 +155,12 @@ const registerUser = async (req, res, next) => {
                 }
             } else {
                 res.status(409)
-                const error = new Error("Email already registered")
+                const error = new Error("Name already registered")
                 next(error)
             }
         } else {
             res.status(409)
-            const error = new Error("Name already exist")
+            const error = new Error("Email already exist")
             next(error)
         }
     } else {
@@ -126,7 +205,7 @@ const verifyUser = (req,res,next) => {
         request_id: req_id,
         code: code
     }, async (err, result) => { 
-        if(err && result.status != "0") {
+        if(err && result.status != '0') {
             res.status(500)
             res.json({
                 "success" : false,
@@ -142,7 +221,7 @@ const verifyUser = (req,res,next) => {
             if (last.length > 0){
                 
                     const payload = {
-                        "id_user" : last,
+                        "id" : last[0].Auto_increment,
                         "name" : name,
                         "email" : email
                     }
@@ -152,15 +231,13 @@ const verifyUser = (req,res,next) => {
                             "success" : true,
                             "message" : "Verification success, account created",
                             "token" : token,
-                            "result" : result,
-                            "payload" : payload
+                            "result" : result
                         })
                     }else{
                         res.status(500)
                         const error = new Error("JWT Error, cant create token")
                         next(error)
-                    }
-                
+                    }                
             } else {
                 res.status(500)
                 res.json({
@@ -179,18 +256,20 @@ const loginUser = async (req, res, next) =>{
     if(rows.length != 0){
         const user = rows[0]
         const password = req.body.password
-        bcrypt.compare(password, user.password)
+        bcrypt.compare(password, user.hashedPassword)
         .then(async()=>{
             const payload = {
-                "id_user" : user.id,
-                "email" : user.email
+                "id" : user.id,
+                "email" : user.email,
+                "name"  : user.name
             }
             const token = await jwt.sign(payload, JWT_KEY)
             if(token){
                 res.json({
                     "success" : true,
                     "message" : "Login successfully!",
-                    "token" : token
+                    "token" : token,
+                    "id"    : user.id
                 })
             }else{
                 res.status(500)
@@ -210,11 +289,12 @@ const loginUser = async (req, res, next) =>{
     }
 }
 
-const userController = {
+const authController = {
     registerUser,
     verifyUser,
     loginUser,
-    cancelVerifyReq
+    cancelVerifyReq,
+    registerBackup
 }
 
-module.exports = userController
+module.exports = authController
