@@ -1,5 +1,5 @@
 create table `users`( id integer primary key auto_increment, name varchar(40), gender varchar(5), birthday date, address varchar(150), email varchar(40), hashedPassword varchar(50), identCard varchar(50), verificated boolean, phoneNum varchar(15), photoProfile varchar(50), createdAt timestamp default CURRENT_TIMESTAMP )
 
-create table `gigs`( id integer primary key auto_increment, id_owner integer references users(id), applier varchar(100) default null, gigType char(1), category varchar(40), jobDesc varchar(150), salary integer(9), workTime integer(40), gigLoc varchar(100), createdAt timestamp default CURRENT_TIMESTAMP )
+create table `gigs`( id integer primary key auto_increment, id_owner integer references users(id), applier varchar(100) default null, gigType char(1), category varchar(40), jobDesc varchar(150), salary integer(10), workTime integer(40), gigLoc varchar(150), createdAt timestamp default CURRENT_TIMESTAMP )
 
 create table `histories`( id integer primary key, id_user integer references users(id), category varchar(40), jobDesc varchar(150), salary integer, workTime varchar (40), gigLoc varchar(100), star float, review varchar(100), createdAt timestamp default CURRENT_TIMESTAMP )

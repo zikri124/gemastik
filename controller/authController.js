@@ -15,7 +15,7 @@ const registerBackup = async(req, res, next) => {
     const name = req.body.name
     const gender = req.body.gender
     const birthday = req.body.birthday
-    const address = req.body.address
+    const address = req.body.city
     const phoneNum = req.body.phoneNum
     const password = req.body.password
     const email = req.body.email
@@ -89,7 +89,7 @@ const registerUser = async (req, res, next) => {
     const name = req.body.name
     const gender = req.body.gender
     const birthday = req.body.birthday
-    const address = req.body.address
+    const address = req.body.city
     const phoneNum = req.body.phoneNum
     const password = req.body.password
     const email = req.body.email
