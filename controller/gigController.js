@@ -15,7 +15,7 @@ const addGigs = async (req ,res ,next) => {
     const address2 = req.body.addressLine2
     const gigLoc = (province+","+city+","+district+","+address1+","+address2)
     //12 September 2020, 13.00
-    db.query('insert into gigs(title, id_owner, gigType, category, jobDesc, salary, workTime, gigLoc, city) values(?,?,?,?,?,?,?)', [title, id, gigType, category, jobdesc, salary, workTime, gigLoc, city])
+    db.query('insert into gigs(title, id_owner, gigType, category, jobDesc, salary, workTime, gigLoc, city) values(?,?,?,?,?,?,?,?,?)', [title, id, gigType, category, jobdesc, salary, workTime, gigLoc, city])
     .then(()=>{
         res.json({
             "success" :true,
@@ -189,7 +189,7 @@ const viewGigApplier = async(req,res,next) => {
 }
 
 const deleteGig = (req, res, next) => {
-    const id = req.id
+    const id = req.params.gigId
     db.query('delete from gigs where id = ?', [id])
         .then(() => {
             res.json({
@@ -201,6 +201,12 @@ const deleteGig = (req, res, next) => {
             const error = new Error("Gig Not Found")
             next(error)
         })
+}
+
+const applyApplier = async(req, res, next) => {
+    const idGig = req.params.gigId
+    const idUser = req.params.id
+
 }
 
 const gigController = {

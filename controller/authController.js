@@ -36,6 +36,7 @@ const registerBackup = async(req, res, next) => {
                     const hashedPassword = await bcrypt.hash(password, 11)
                     
                     db.query('insert into users(name, gender, birthday, address, email, phoneNum, hashedPassword) values(?,?,?,?,?,?,?)', [name, gender, birthday, address, email, phoneNum, hashedPassword])
+                    
                     const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "users" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
                     if (last.length > 0){
                         const payload = {

@@ -1,15 +1,15 @@
 const db = require('../database')
 
 const GigtoHistory = async(req, res, next) => {
+    const id_user = req.user.id
     const gigId = req.params.gigId
     const star = req.body.star
     const review = req.body.review
     const [gig] = await db.query('select * from gigs where id=?', [gigId])
     if (gig.length > 0){
         const Gig = gig[0]
-        db.query('insert into histories(id, id_user, category, jobDesc, salary, workTime, gigLoc, star, review) values(?,?,?,?,?,?,?,?,?)', [gigId, Gig.category, Gig.jobdesc, Gig.salary, Gig.workTime, Gig.gigLoc, star, review])
+        db.query('insert into histories(id, id_user, apply,title, category, jobDesc, salary, workTime, gigLoc, star, review) values(?,?,?,?,?,?,?,?,?,?)', [gigId, id_user, Gig.apply, Gig.title, Gig.category, Gig.jobdesc, Gig.salary, Gig.workTime, Gig.gigLoc, star, review])
         .then(()=>{
-            req.id = gigId
             next()      
         })
         .catch((err)=>{

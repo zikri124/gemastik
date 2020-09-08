@@ -39,12 +39,12 @@ const updateUserData = (req, res, next) => {
         .then(() => {
             res.json({
                 "success": true,
-                "message": "Change name success"
+                "message": "Update user data success"
             })
         })
         .catch(() => {
-            res.status(404)
-            const error = new Error("User Not Found")
+            res.status(501)
+            const error = new Error("Internal server error")
             next(error)
         })
 }
@@ -73,7 +73,6 @@ const addBookmark = async (req,res,next) => {
                 }
             }
         }
-
         db.query('update users set bookmark = ? where id = ?', [query, userId])
             .then(() => {
                 res.json({

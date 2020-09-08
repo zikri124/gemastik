@@ -3,6 +3,7 @@ const router = require('express').Router()
 const authRouter = require('./authRouter')
 const userRouter = require('./userRouter')
 const gigRouter = require('./gigRouter')
+const historyRouter = require('./historyRouter')
 const { upload } = require('../middleware/')
 
 
@@ -17,6 +18,8 @@ router.use('/auth', authRouter)
 router.use('/user', userRouter)
 //gig route
 router.use('/gig', gigRouter)
+//history route
+router.use('/history', historyRouter)
 //get the profile image
 router.use('/profile', express.static('images/profile'))
 router.use('/identityCard', express.static('images/identity'))
