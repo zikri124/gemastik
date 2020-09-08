@@ -2,6 +2,8 @@ const db = require('../database')
 
 const addGigs = async (req ,res ,next) => {
     const id = req.user.id
+    const title = req.body.title
+    const gigType = req.body.gigType
     const category = req.body.category
     const jobdesc = req.body.jobdesc
     const salary = req.body.salary
@@ -12,8 +14,8 @@ const addGigs = async (req ,res ,next) => {
     const address1 = req.body.addressLine1
     const address2 = req.body.addressLine2
     const gigLoc = (province+","+city+","+district+","+address1+","+address2)
-    
-    db.query('insert into gigs(id_owner, category, jobDesc, salary, workTime, gigLoc, city) values(?,?,?,?,?,?,?)', [id, category, jobdesc, salary, workTime, gigLoc, city])
+    //12 September 2020, 13.00
+    db.query('insert into gigs(title, id_owner, gigType, category, jobDesc, salary, workTime, gigLoc, city) values(?,?,?,?,?,?,?)', [title, id, gigType, category, jobdesc, salary, workTime, gigLoc, city])
     .then(()=>{
         res.json({
             "success" :true,
