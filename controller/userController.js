@@ -1,13 +1,32 @@
 require('dotenv').config()
 const db = require('../database')
 
-const viewUser = async (req, res, next) => {
-    const id = req.params.id_user
-    const [rows] = await db.query('select name, photoProfile from users where id = ?', [id])
-    if (rows.length > 0) {
+const viewWorker = async (req, res, next) => {
+    const id = req.params.workerId
+    const [rows] = await db.query('select users.name, users.photoProfile, users.city, workers.salary, workers.avgRate, workers.skill, workers.summary from users inner join workers on users.id = workers.userId where users.id = ?', [id])
+    if (rows.length > 0) { 
+        const [row2] = await db.query("select title, category, jobDesc, rating, review, city, date_format(createdAt, '%e %M %Y') as date from histories where workerId = ?", [id]) 
         res.json({
             "id" : id,
-            "user" : rows[0]
+            "user" : rows[0],
+            "experience" : row2
+        })
+    } else {
+        res.status(501)
+        const error = new Error("Internal server error")
+        next(error)
+    }
+}
+
+const viewWorkerFull = async(req, res,next) => {
+    const id = req.params.userId
+    const [rows] = await db.query('select users.*, workers.salary, workers.avgRate, workers.bankAcc, workers.skill from users inner join workers on users.id = workers.userId where users.id = ?', [id])
+    if (rows.length > 0) { 
+        const [row2] = await db.query("select title, category, jobDesc, avgRate, city, date_format(createdAt, '%e %M %Y') as date from histories where workerId = ?", [id]) 
+        res.json({
+            "id" : id,
+            "user" : rows[0],
+            "gigs" : row2
         })
     } else {
         res.status(501)
@@ -49,54 +68,11 @@ const updateUserData = (req, res, next) => {
         })
 }
 
-const addBookmark = async (req,res,next) => {
-    const userId = req.user.id
-    const userIdMarked = req.params.id
-    const [marked] = await db.query('select bookmark from users where id = ?', [userId])
-    if (marked.length>0) {
-        const Marked = marked[0]
-        var query = Marked
-        
-        if (query.length == 0){
-            query = (''+userIdMarked+'')
-        } else {
-            query = (query+","+userIdMarked)
-            const list = query.split(",")
-            for (let i = 0; i < count; i++) {
-                if (userId == list[i]){
-                    res.json({
-                        "success": false,
-                        "message": "User has been marked"
-                    })
-                    const error = new Error('User has been marked')
-                    next(error)
-                }
-            }
-        }
-        db.query('update users set bookmark = ? where id = ?', [query, userId])
-            .then(() => {
-                res.json({
-                    "success": true,
-                    "message": "Marked",
-                    "result": query
-                })
-            }).catch(() => {
-                res.json({
-                    "success": false
-                })
-            })
-    } else {
-        res.status(501)
-        const error = new Error('Internal server error')
-        next(error)
-    }
-}
-
 const userController = {
-    viewUser,
+    viewWorker,
+    viewWorkerFull,
     findUser,
-    updateUserData,
-    addBookmark
+    updateUserData
 }
 
 module.exports = userController

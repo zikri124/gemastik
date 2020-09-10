@@ -15,7 +15,7 @@ const registerBackup = async(req, res, next) => {
     const name = req.body.name
     const gender = req.body.gender
     const birthday = req.body.birthday
-    const address = req.body.city
+    const city = req.body.city
     const phoneNum = req.body.phoneNum
     const password = req.body.password
     const email = req.body.email
@@ -35,7 +35,7 @@ const registerBackup = async(req, res, next) => {
                 if (rows.length == 0) {
                     const hashedPassword = await bcrypt.hash(password, 11)
                     
-                    db.query('insert into users(name, gender, birthday, address, email, phoneNum, hashedPassword) values(?,?,?,?,?,?,?)', [name, gender, birthday, address, email, phoneNum, hashedPassword])
+                    db.query("insert into users(name, gender, birthday, city, email, phoneNum, hashedPassword) values(?,?,str_to_date(?, '%d-%m-%Y'),?,?,?,?)", [name, gender, birthday, city, email, phoneNum, hashedPassword])
                     
                     const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "users" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
                     if (last.length > 0){
@@ -214,7 +214,7 @@ const verifyUser = (req,res,next) => {
             const error = new Error("Internal server error")
             next(error)
         } else {
-            db.query('insert into users(name, gender, birthday, address, email, phoneNum, hashedPassword) values(?,?,?,?,?,?,?)', [name, gender, birthday, address, email, phoneNum, hashedPassword])
+            db.query("insert into users(name, gender, birthday, address, email, phoneNum, hashedPassword) values(?,?,str_to_date(?, '%d-%m-%Y'),?,?,?,?)", [name, gender, birthday, address, email, phoneNum, hashedPassword])
             const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "users" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
             if (last.length > 0){
                 

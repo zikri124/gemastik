@@ -1,8 +1,6 @@
 require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const JWT_KEY = process.env.JWT_KEY
-const multer = require('multer')
-const path = require('path')
 
 module.exports = {
     checkToken: async (req, res, next) => {

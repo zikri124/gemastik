@@ -6,37 +6,86 @@ const addGigs = async (req ,res ,next) => {
     const gigType = req.body.gigType
     const category = req.body.category
     const jobdesc = req.body.jobdesc
-    const salary = req.body.salary
+    const workDate = req.body.workDate
     const workTime = req.body.workTime
-    const province = req.body.province
     const city = req.body.city
-    const district = req.body.district
-    const address1 = req.body.addressLine1
-    const address2 = req.body.addressLine2
-    const gigLoc = (province+","+city+","+district+","+address1+","+address2)
-    //12 September 2020, 13.00
-    db.query('insert into gigs(title, id_owner, gigType, category, jobDesc, salary, workTime, gigLoc, city) values(?,?,?,?,?,?,?,?,?)', [title, id, gigType, category, jobdesc, salary, workTime, gigLoc, city])
-    .then(()=>{
-        res.json({
-            "success" :true,
-            "message" : "Gig added"
+    const gigLoc = req.body.address
+
+    ///gig time!!!
+
+    const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "gigs" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
+    
+    if (last.length > 0){
+        db.query("insert into gigs(title, ownerId, gigStatus, title, gigType, category, jobDesc, workDate, workTime, gigLoc, city) values(?,?,?,?,?,?,?,str_to_date(?, '%d-%m-%Y'),?,?,?)", [title, id, 'send', gigType, title, category, jobdesc, workDate, workTime, gigLoc, city])
+        .then(()=>{
+            res.json({
+                "success" :true,
+                "gigId" : last[0].Auto_increment
+            })
         })
-    })
-    .catch((err)=>{
-        res.status(501)
-        res.json({
-            "success" : false,
-            "error" : err
+        .catch((err)=>{
+            res.status(501)
+            res.json({
+                "success" : false,
+                "error" : err
+            })
         })
-    })
+    } else {
+        const error = new Error("Internal server error")
+        next(error)
+    }
 }
 
-const viewGig = async (req, res, next) => {
+const findWorker = async (req, res, next) => {
+    const gigId = req.params.gigid
+    const [gigData] = await db.query('select city,workDate, workTime,category from gigs where id=?', [gigId])
+    if (gigData.length>0){
+        //wroktime
+        const [worker] = await db.query('select users.id, users.name, workers.category, workers.salary, workers.avgRate from users inner join workers on users.id = workers.id_user where users.city=? and workers.status=? and workers.workDate = ? ',[gigData[0].city, '1', gigData[0].workDate])
+        if (worker.length>0){
+            res.json({
+                "workers": worker,
+                "gigId": gigId
+            })
+        } else {
+            res.status(200)
+            res.json({
+                "success" : true,
+                "message" : "Can't find any worker at the time time"
+            })
+        }
+    } else {
+        res.status(501)
+        const error = new Error("Internal server error")
+        next(error)
+    }
+}
+
+const makeOffer = async (req, res, next) => {
+    const gigId = req.params.gigId
+    const workerId = req.params.workerId
+    
+    db.query('update gigs set worker = ?, status = ? where id = ?', [workerId, 'On confirmation', gigId])
+            .then(() => {
+                res.json({
+                    "success": true,
+                    "message": "Gig offer has been created"
+                })
+            }).catch(() => {
+                res.json({
+                    "success": false
+                })
+            })        
+}
+
+const viewAnyGig = async (req, res, next) => {
     const gigId = req.params.id
-    const [row] = await db.query('select * from gigs where id = ?', [gigId])
+    const [row] = await db.query('select gigs.id, gigs.ownerId, gigs.title, gigs.status, gigs.workerId, gigs.category, gigs.jobDesc, gigs.salary, gigs.workDate, gigs.workTime, gigs.gigLoc, gigs.city, gigs.createdAt, users.name from gigs inner join users on gigs.ownerId = users.id where id = ?', [gigId])
     if (row.length >0) {
+        const [row2] = await db.query('select workers.category, workers.salary, users.name from workers inner join users on users.id = workers.userId where id = ?', [row[0].workerId])
         res.json({
-            "gig" : row[0]
+            "gig" : row[0],
+            "worker" : row2[0]
         })
     } else {
         const error = new Error("Cant find the gig")
@@ -44,147 +93,62 @@ const viewGig = async (req, res, next) => {
     }
 }
 
-const viewGigsbyAddress = async (req,res,next) => {
-    const id = req.user.id
-    const [user] = await db.query('select address from users where id = ?', [id])
-    if (user.length>0) {
-        const [row] = await db.query('select id, title, category, city from gigs where city = ?', [user[0].address])
-        if(row.length>0){
-            res.json({
-                "gigs" : row
-            })
-        } else {
-            const error = new Error("No gigs found")
-            next(error)    
-        }
-    } else {
-        res.status(404)
-        const error = new Error("User not found")
-        next(error)
-    }
-}
-
-const viewGigsbyLatests = async (req,res,next) => {
-    const id = req.user.id
-    const [user] = await db.query('select address from users where id = ?', [id]) 
-    if (user.length>0) {
-        const [row] = await db.query('select id, title, category, city from gigs where city = ? order by createdAt desc', [user[0].address])
-        if(row.length>0){
-            res.json({
-                "gigs" : row
-            })
-        } else {
-            const error = new Error("No gigs found")
-            next(error)    
-        }
-    } else {
-        res.status(404)
-        const error = new Error("User not found")
-        next(error)
-    }
-}
-
-const viewGigsbyCategory = async (req,res,next) => {
-    const category = req.params.category
-    const id = req.user.id
-    const [user] = await db.query('select address from users where id = ?', [id])
-    if (user.length>0) {
-        const [row] = await db.query('select id, title, category, city from gigs where city = ? and category = ?', [user[0].address, category])
-        if(row.length>0){
-            res.json({
-                "gigs" : row
-            })
-        } else {
-            const error = new Error("No gigs found")
-            next(error)    
-        }
-    } else {
-        res.status(404)
-        const error = new Error("User not found")
-        next(error)
-    }
-}
-
-const viewGigsbyType = async (req,res,next) => {
-    const type = req.params.type
-    const id = req.user.id
-    const [user] = await db.query('select address from users where id = ?', [id])
-    if (user.length>0) {
-        const [row] = await db.query('select id, title, category, city from gigs where city = ? and gigType = ?', [user[0].address, type])
-        if(row.length>0){
-            res.json({
-                "gigs" : row
-            })
-        } else {
-            const error = new Error("No gigs found")
-            next(error)    
-        }
-    } else {
-        res.status(404)
-        const error = new Error("User not found")
-        next(error)
-    }
-}
-
-const applyGig = async (req,res, next) => {
+//nampilin daftar gigs by tab(send, on working, done)
+const gigByStatus = async (req, res, next) => {
+    const status = req.params.status
     const userId = req.user.id
-    const idGigs = req.params.id
-    const [applier] = await db.query('select applier,applierCount from gigs where id = ?', [idGigs])
-    if (applier.length>0) {
-        const Applier = applier[0]
-        var count = Applier.applierCount
-        var query = Applier.applier
-        const list = query.split(",")        
-        
-        if (count == 0){
-            query = (''+userId+'')
-        } else {
-            query = (query+","+userId)
-            for (let i = 0; i < count; i++) {
-                if (userId == list[i]){
-                    res.json({
-                        "success": false,
-                        "message": "You have applied this Gig, wait for notification"
-                    })
-                    const error = new Error('You have applied this Gig, wait for notification')
-                    next(error)
-                }
-            }
-        }
 
-        db.query('update gigs set applier = ?, applierCount=? where id = ?', [query, (count+1), idGigs])
-            .then(() => {
-                res.json({
-                    "success": true,
-                    "message": "Applied",
-                    "result": query,
-                    "count": (count+1)
-                })
-            }).catch(() => {
-                res.json({
-                    "success": false
-                })
+    if (status != 'done') {
+        const [query] = await db.query('select * from gigs where status = ? and ownerId = ? order by updatedAt desc', [status, userId])
+        if(row.length>0){
+            res.json({
+                "gigs" : query
             })
+        } else {
+            const error = new Error("No gigs found")
+            next(error)    
+        }
+    } else {
+        const [query] = await db.query('select * from histories where ownerId = ? order by updatedAt desc', [userId]) 
+        if(row.length>0){
+            res.json({
+                "gigs" : query
+            })
+        } else {
+            const error = new Error("No gigs found")
+            next(error)    
+        }
+    }
+}
+
+const gigSetStatus = async(req, res, next) => {
+    const status = req.params.status
+    const id_user = req.user.id
+    const gigId = req.params.gigId
+    const [gig] = await db.query('select * from gigs where id=?', [gigId])
+    if (gig.length > 0){
+        const Gig = gig[0]
+        db.query('insert into histories(gigId, ownerId,, gigStatus, workerId, title, category, jobDesc, salary, workTime, workDate, gigLoc, city, createdAt) values(?,?,?,?,?,?,?,?,?,?,?,?)', [gigId, id_user, status, Gig.workerId, Gig.title, Gig.category, Gig.jobdesc, Gig.salary, Gig.workDate, Gig.workTime, Gig.gigLoc, Gig.city, Gig.createdAt])
+        .then(()=>{
+            if(status == "done"){
+                next()
+            } else {
+                res.status(200)
+                next()
+            }
+                  
+        })
+        .catch((err)=>{
+            res.status(501)
+            res.json({
+                "success" : false,
+                "error" : err
+            })
+        })
     } else {
         res.status(501)
-        const error = new Error('Internal server error')
+        const error = new Error("Internal server error")
         next(error)
-    }
-}
-
-const viewGigApplier = async(req,res,next) => {
-    const gigId = req.params.id
-    const [Applier] = await db.query('select applier from gigs where id = ? ', [gigId])   
-    const queryT = ('select id, name from users where id IN ('+Applier[0].applier+')') 
-    const [users] = await db.query(queryT)
-    if (users.length>0){
-        res.json({
-            "result": users
-        })
-    } else {
-        res.json({
-            "result": "No applier found"
-        })
     }
 }
 
@@ -203,21 +167,13 @@ const deleteGig = (req, res, next) => {
         })
 }
 
-const applyApplier = async(req, res, next) => {
-    const idGig = req.params.gigId
-    const idUser = req.params.id
-
-}
-
 const gigController = {
     addGigs,
-    viewGig,
-    viewGigsbyAddress,
-    viewGigsbyLatests,
-    viewGigsbyCategory,
-    viewGigsbyType,
-    applyGig,
-    viewGigApplier,
+    findWorker,
+    makeOffer,
+    viewAnyGig,
+    gigByStatus,
+    gigSetStatus,
     deleteGig
 }
 
