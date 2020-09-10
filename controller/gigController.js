@@ -8,6 +8,7 @@ const addGigs = async (req ,res ,next) => {
     const jobdesc = req.body.jobdesc
     const workDate = req.body.workDate
     const workTime = req.body.workTime
+    const note = req.body.note
     const city = req.body.city
     const gigLoc = req.body.address
 
@@ -16,7 +17,7 @@ const addGigs = async (req ,res ,next) => {
     const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "gigs" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
     
     if (last.length > 0){
-        db.query("insert into gigs(title, ownerId, gigStatus, title, gigType, category, jobDesc, workDate, workTime, gigLoc, city) values(?,?,?,?,?,?,?,str_to_date(?, '%d-%m-%Y'),?,?,?)", [title, id, 'send', gigType, title, category, jobdesc, workDate, workTime, gigLoc, city])
+        db.query("insert into gigs(title, ownerId, gigStatus, title, gigType, category, jobDesc, workDate, workTime, note, gigLoc, city) values(?,?,?,?,?,?,?,str_to_date(?, '%d-%m-%Y'),?,?,?,?)", [title, id, 'send', gigType, title, category, jobdesc, workDate, workTime, note, gigLoc, city])
         .then(()=>{
             res.json({
                 "success" :true,
@@ -41,7 +42,7 @@ const findWorker = async (req, res, next) => {
     const [gigData] = await db.query('select city,workDate, workTime,category from gigs where id=?', [gigId])
     if (gigData.length>0){
         //wroktime
-        const [worker] = await db.query('select users.id, users.name, workers.category, workers.salary, workers.avgRate from users inner join workers on users.id = workers.id_user where users.city=? and workers.status=? and workers.workDate = ? ',[gigData[0].city, '1', gigData[0].workDate])
+        const [worker] = await db.query('select users.id, users.name, workers.category, workers.salary, workers.avgRate from users inner join workers on users.id = workers.id_user where users.city=? and workers.status=? ',[gigData[0].city, '1'])
         if (worker.length>0){
             res.json({
                 "workers": worker,

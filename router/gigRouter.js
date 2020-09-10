@@ -12,6 +12,6 @@ router.get('/:gigId', gigController.viewAnyGig)
 
 router.get('/view/:status', checkToken, gigController.gigByStatus)
 
-router.post('/:status/:gigId', checkToken, gigController.gigSetStatus, gigController.deleteGig)
+router.put('/:status/:gigId', checkToken, gigController.gigSetStatus, gigController.deleteGig)
 
 module.exports = router

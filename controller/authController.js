@@ -28,6 +28,10 @@ const registerBackup = async(req, res, next) => {
             res.status(409)
             const error = new Error("Please enter all the field")
             next(error)
+        } else if (password.length < 8){
+            res.status(409)
+            const error = new Error("Minimum password length is 8")
+            next(error)
         } else if (rows.length == 0) {
             const [rows2] = await db.query('select * from users where name = ? limit 1', [name])
             if (rows2.length == 0) {
@@ -100,6 +104,10 @@ const registerUser = async (req, res, next) => {
             res.status(409)
             const error = new Error("Please enter all the field")
             next(error)
+        } else if (password.length < 8){
+            res.status(409)
+            const error = new Error("Minimum password length is 8")
+            next(error)
         } else if (rows.length == 0) {
             const [rows2] = await db.query('select * from users where name = ? limit 1', [name])
             if (rows2.length == 0) {
@@ -121,10 +129,10 @@ const registerUser = async (req, res, next) => {
                     if(token){
                         nexmo.verify.request({
                             number: phoneNum,
-                            brand: 'Gemastik ',
+                            brand: 'Your diGig ',
                             code_length: '4',
                             pin_expiry: '300',
-                            lg: 'id-id'
+                            lg: 'en-us'
                         }, (err, result) => {
                             if (err){
                                 res.status(500)
