@@ -4,8 +4,6 @@ const authRouter = require('./authRouter')
 const userRouter = require('./userRouter')
 const gigRouter = require('./gigRouter')
 const workerRouter = require('./workerRouter')
-const { upload } = require('../middleware/')
-
 
 //router
 router.get('/ping', (req, res) => {
@@ -20,14 +18,6 @@ router.use('/user', userRouter)
 router.use('/gig', gigRouter)
 
 router.use('/worker', workerRouter )
-//get the profile image
-router.use('/profile', express.static('images/profile'))
-router.use('/identityCard', express.static('images/identity'))
-
-//route multer test
-/*router.post('/addPicture', upload.single('pitcure'), function(req, res) {
-    res.send("File rceived")
-})*/
 
 ////////////////////////////////////////////////////
 
