@@ -24,7 +24,7 @@ const registerBackup = async(req, res, next) => {
     if (isEmail) {
         const [rows] = await db.query('select * from users where email = ? limit 1', [email])
         
-        if (name.length == 0 || gender.length == 0 || birthday.length == 0 || address.length == 0 || phoneNum.length == 0 || password.length == 0) {
+        if (name.length == 0 || gender.length == 0 || birthday.length == 0 || city.length == 0 || phoneNum.length == 0 || password.length == 0) {
             res.status(409)
             const error = new Error("Please enter all the field")
             next(error)
@@ -222,7 +222,7 @@ const verifyUser = (req,res,next) => {
             const error = new Error("Internal server error")
             next(error)
         } else {
-            db.query("insert into users(name, gender, birthday, address, email, phoneNum, hashedPassword) values(?,?,str_to_date(?, '%d-%m-%Y'),?,?,?,?)", [name, gender, birthday, address, email, phoneNum, hashedPassword])
+            db.query("insert into users(name, gender, birthday, city, email, phoneNum, hashedPassword) values(?,?,str_to_date(?, '%d-%m-%Y'),?,?,?,?)", [name, gender, birthday, address, email, phoneNum, hashedPassword])
             const [last] = await db.query('select Auto_increment from information_schema.TABLES where TABLE_NAME = "users" and TABLE_SCHEMA = "heroku_796e9e1e9d14eff"')
             if (last.length > 0){
                 
