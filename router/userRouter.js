@@ -6,7 +6,7 @@ router.get('/search', userController.findUser)
 
 router.get('/worker/:workerId', userController.viewWorker)
 
-router.get('/view/:id', userController.viewUser)
+//router.get('/view/:id', userController.)
 
 router.put('/update', checkToken, userController.updateUserData)
 
