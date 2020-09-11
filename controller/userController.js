@@ -3,7 +3,7 @@ const db = require('../database')
 
 const viewWorker = async (req, res, next) => {
     const id = req.params.workerId
-    const [rows] = await db.query('select users.name, users.photoProfile, users.city, workers.salary, workers.avgRate, workers.skill, workers.summary from users inner join workers on users.id = workers.userId where users.id = ?', [id])
+    const [rows] = await db.query('select users.name, users.photoProfile, users.city, workers.salary, workers.avgRate, workers.skills, workers.summary from users inner join workers on users.id = workers.userId where users.id = ?', [id])
     if (rows.length > 0) { 
         const [row2] = await db.query("select title, category, jobDesc, rating, review, city, date_format(createdAt, '%e %M %Y') as date from histories where workerId = ?", [id]) 
         res.json({
