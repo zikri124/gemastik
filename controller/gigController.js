@@ -84,7 +84,7 @@ const makeOffer = async (req, res, next) => {
 
 const viewAnyGig = async (req, res, next) => {
     const gigId = req.params.id
-    const [row] = await db.query('select gigs.id, gigs.ownerId, gigs.title, gigs.status, gigs.workerId, gigs.category, gigs.jobDesc, gigs.salary, gigs.workDate, gigs.workTime, gigs.gigLoc, gigs.city, gigs.createdAt, users.name from gigs inner join users on gigs.ownerId = users.id where id = ?', [gigId])
+    const [row] = await db.query('select gigs.id, gigs.ownerId, gigs.title, gigs.status, gigs.workerId, gigs.category, gigs.jobDesc, gigs.salary, gigs.duration, gigs.workTime, gigs.gigLoc, gigs.city, gigs.createdAt, users.name from gigs inner join users on gigs.ownerId = users.id where id = ?', [gigId])
     if (row.length >0) {
         const [row2] = await db.query('select users.id, workers.category, workers.salary, users.name from workers inner join users on users.id = workers.userId where id = ?', [row[0].workerId])
         res.json({
@@ -132,7 +132,7 @@ const gigSetStatus = async(req, res, next) => {
     const [gig] = await db.query('select * from gigs where id=?', [gigId])
     if (gig.length > 0){
         const Gig = gig[0]
-        db.query('insert into histories(gigId, ownerId,, gigStatus, workerId, title, category, jobDesc, salary, workTime, workDate, gigLoc, city, createdAt) values(?,?,?,?,?,?,?,?,?,?,?,?)', [gigId, id_user, status, Gig.workerId, Gig.title, Gig.category, Gig.jobdesc, Gig.salary, Gig.workDate, Gig.workTime, Gig.gigLoc, Gig.city, Gig.createdAt])
+        db.query('insert into histories(gigId, ownerId,, gigStatus, workerId, title, category, jobDesc, salary, workTime, duration, gigLoc, city, createdAt) values(?,?,?,?,?,?,?,?,?,?,?,?)', [gigId, id_user, status, Gig.workerId, Gig.title, Gig.category, Gig.jobdesc, Gig.salary, Gig.workDate, Gig.workTime, Gig.gigLoc, Gig.city, Gig.createdAt])
         .then(()=>{
             if(status == "done"){
                 next()
