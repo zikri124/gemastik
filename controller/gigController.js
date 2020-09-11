@@ -106,7 +106,7 @@ const gigByStatus = async (req, res, next) => {
         const [row] = await db.query('select * from gigs where gigStatus = ? and ownerId = ?', [status, userId]) //order by createdAt desc
         if(row.length>0){
             res.json({
-                "gigs" : query
+                "gigs" : row
             })
         } else {
             const error = new Error("No gigs found")
@@ -116,7 +116,7 @@ const gigByStatus = async (req, res, next) => {
         const [row] = await db.query('select * from histories where ownerId = ?', [userId]) 
         if(row.length>0){
             res.json({
-                "gigs" : query
+                "gigs" : row
             })
         } else {
             const error = new Error("No gigs found")
