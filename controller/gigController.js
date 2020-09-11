@@ -19,10 +19,12 @@ const addGigs = async (req ,res ,next) => {
     if (last.length > 0){
         db.query("insert into gigs(title, ownerId, gigStatus, title, gigType, category, jobDesc, workDate, workTime, note, gigLoc, city) values(?,?,?,?,?,?,?,str_to_date(?, '%d-%m-%Y'),?,?,?,?)", [title, id, 'send', gigType, title, category, jobdesc, workDate, workTime, note, gigLoc, city])
         .then(()=>{
-            res.json({
+            req.gigId = last[0].Auto_increment
+            next()
+            /*res.json({
                 "success" :true,
                 "gigId" : last[0].Auto_increment
-            })
+            })*/
         })
         .catch((err)=>{
             res.status(501)
@@ -38,7 +40,8 @@ const addGigs = async (req ,res ,next) => {
 }
 
 const findWorker = async (req, res, next) => {
-    const gigId = req.params.gigid
+    const gigId = req.gigId
+    //const gigId = req.params.gigid
     const [gigData] = await db.query('select city,workDate, workTime,category from gigs where id=?', [gigId])
     if (gigData.length>0){
         //wroktime
@@ -52,7 +55,7 @@ const findWorker = async (req, res, next) => {
             res.status(200)
             res.json({
                 "success" : true,
-                "message" : "Can't find any worker at the time time"
+                "message" : "Can't find any worker at the work Time"
             })
         }
     } else {
