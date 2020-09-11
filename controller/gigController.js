@@ -42,7 +42,7 @@ const findWorker = async (req, res, next) => {
     const [gigData] = await db.query('select city,workDate, workTime,category from gigs where id=?', [gigId])
     if (gigData.length>0){
         //wroktime
-        const [worker] = await db.query('select users.id, users.name, workers.category, workers.salary, workers.avgRate from users inner join workers on users.id = workers.id_user where users.city=? and workers.status=? ',[gigData[0].city, '1'])
+        const [worker] = await db.query('select users.id, users.name, workers.category, workers.salary, workers.avgRate from users inner join workers on users.id = workers.id_user where users.city=? and workers.status=?',[gigData[0].city, '1'])
         if (worker.length>0){
             res.json({
                 "workers": worker,
@@ -83,7 +83,7 @@ const viewAnyGig = async (req, res, next) => {
     const gigId = req.params.id
     const [row] = await db.query('select gigs.id, gigs.ownerId, gigs.title, gigs.status, gigs.workerId, gigs.category, gigs.jobDesc, gigs.salary, gigs.workDate, gigs.workTime, gigs.gigLoc, gigs.city, gigs.createdAt, users.name from gigs inner join users on gigs.ownerId = users.id where id = ?', [gigId])
     if (row.length >0) {
-        const [row2] = await db.query('select workers.category, workers.salary, users.name from workers inner join users on users.id = workers.userId where id = ?', [row[0].workerId])
+        const [row2] = await db.query('select users.id, workers.category, workers.salary, users.name from workers inner join users on users.id = workers.userId where id = ?', [row[0].workerId])
         res.json({
             "gig" : row[0],
             "worker" : row2[0]
