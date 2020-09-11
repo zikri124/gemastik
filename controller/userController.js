@@ -20,7 +20,7 @@ const viewWorker = async (req, res, next) => {
 
 const viewWorkerFull = async(req, res,next) => {
     const id = req.params.userId
-    const [rows] = await db.query('select users.*, workers.salary, workers.avgRate, workers.bankAcc, workers.skill from users inner join workers on users.id = workers.userId where users.id = ?', [id])
+    const [rows] = await db.query('select users.*, workers.salary, workers.avgRate, workers.bankAcc, workers.skills from users inner join workers on users.id = workers.userId where users.id = ?', [id])
     if (rows.length > 0) { 
         const [row2] = await db.query("select title, category, jobDesc, avgRate, city, date_format(createdAt, '%e %M %Y') as date from histories where workerId = ?", [id]) 
         res.json({
